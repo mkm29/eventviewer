@@ -69,9 +69,13 @@ func (r *EventReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		level = promtail.Warn
 	}
 
-	r.PromtailClient.LogfWithLabels(level, extraLabels, event.Note)
+	if r.PromtailClient == nil {
+		logger.Error(nil, "promtail client is nil")
+		return ctrl.Result{}, nil
+	}
+	r.PromtailClient.LogfWithLabels(level, extraLabels, event.Message)
 
-	logger.V(5).Info("processed event", "note", event.Note)
+	logger.V(5).Info("processed event", "note", event.Message)
 	return ctrl.Result{}, nil
 }
 

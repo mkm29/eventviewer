@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -44,7 +45,7 @@ var (
 		"cluster_name": "k3s-eventviewer-debug",
 		"job":          "eventviewer",
 	}
-	lokiPushGatewayURL = "http://promtail.logging.svc.cluster.local:3100/api/prom/push"
+	lokiPushGatewayURL = "http://loki-gateway:3100/loki/api/v1/push"
 )
 
 func init() {
@@ -102,13 +103,22 @@ func main() {
 	})
 
 	promtailJsonClient, err := promtail.NewJSONv1Client(lokiPushGatewayURL, labels, promtailOptions)
-	if err != nil {
+	if err != nil || promtailJsonClient == nil {
 		setupLog.Error(err, "Failed to create promtail client")
 		os.Exit(1)
+	} else {
+		setupLog.Info(fmt.Sprintf("Promtail client created: %v", promtailJsonClient))
+	}
+	// ping
+	res, err := promtailJsonClient.Ping()
+	if err != nil {
+		setupLog.Error(err, "Failed to ping promtail")
+		// os.Exit(1)
+	} else {
+		setupLog.Info("Promtail ping result", "result", res)
+		setupLog.Info("Promtail client created")
 	}
 	defer promtailJsonClient.Close()
-
-	setupLog.Info("Promtail client created")
 
 	if err = (&controllers.EventReconciler{
 		Client:         mgr.GetClient(),

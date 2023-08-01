@@ -3,6 +3,7 @@ module github.com/mkm29/eventviewer
 go 1.19
 
 require (
+	github.com/ic2hrmk/promtail v0.0.5
 	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0
 	k8s.io/api v0.25.0
